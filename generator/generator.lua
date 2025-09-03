@@ -7,6 +7,9 @@ assert(bit,"Must use LuaJIT")
 local script_args = {...}
 local COMPILER = script_args[1]
 
+local IMGUI_PATH = os.getenv"IMGUI_PATH" or "../../cimgui/imgui"
+local IMNODES_PATH = os.getenv"IMNODES_PATH" or "../imnodes"
+
 local CPRE,CTEST
 if COMPILER == "gcc" or COMPILER == "clang" then
     CPRE = COMPILER..[[ -E -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS -DIMGUI_API="" -DIMGUI_IMPL_API="" -DIMNODES_NAMESPACE="imnodes"]]
@@ -137,7 +140,7 @@ local function parseImGuiHeader(header,names)
 	parser.UDTs = {"ImVec2","ImVec4","ImColor","ImRect"}
 	parser.cimgui_inherited =  dofile([[../../cimgui/generator/output/structs_and_enums.lua]])
 	local include_cmd = COMPILER=="cl" and [[ /I ]] or [[ -I ]]
-	local extra_includes = include_cmd.." ../../cimgui/imgui "
+	local extra_includes = include_cmd.." "..IMGUI_PATH.." "
 	
 	parser:take_lines(CPRE..extra_includes..header, names, COMPILER)
 	
@@ -146,7 +149,7 @@ end
 --generation
 print("------------------generation with "..COMPILER.."------------------------")
 local modulename = "cimnodes"
-local parser1 = parseImGuiHeader([[../imnodes/imnodes.h]],{[[imnodes]]})
+local parser1 = parseImGuiHeader(IMNODES_PATH..[[/imnodes.h]],{[[imnodes]]})
 parser1:do_parse()
 
 save_data("./output/overloads.txt",parser1.overloadstxt)
